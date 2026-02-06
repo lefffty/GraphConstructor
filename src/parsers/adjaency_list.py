@@ -1,39 +1,12 @@
 from .base import GraphParser
 
-from src.data.classes.vertex import Vertex
-from src.data.classes.edge import Edge
-from src.graph.base import Graph
+from ..graph.base import Graph, Edge, Vertex
+
+from collections import defaultdict
 
 
 class AdjaencyListParser(GraphParser):
-    def parseFrom(self):
-        edges = []
-
-        with open(self.filepath, 'r') as fp:
-            vertices = [Vertex(name.strip())
-                        for name in fp.readline().split(' ')]
-
-            for index, values in enumerate(fp.readlines()):
-                for edge_str in values.split(' '):
-                    left_brace = edge_str.find('[')
-                    if left_brace == -1:
-                        raise ValueError
-
-                    right_brace = edge_str.find(']')
-                    if right_brace == -1:
-                        raise ValueError
-
-                    edge_str = edge_str[left_brace + 1:right_brace]
-                    parts = edge_str.split(',')
-                    if not self.isNumber(parts[1]):
-                        raise ValueError
-                    edge = Edge(vertices[index],
-                                vertices[int(parts[0])], float(parts[1]))
-                    edges.append(edge)
-
-        return Graph(edges, vertices)
-
-    def parseTo(self, graph: Graph):
+    def serialize(self, graph: Graph) -> int:
         vertices = graph.get_vertices()
         vertex_to_index = {vertex: index for index,
                            vertex in enumerate(vertices)}
@@ -58,3 +31,39 @@ class AdjaencyListParser(GraphParser):
             chars = fp.write(parsed_result)
 
         return chars
+
+    def deserialize(self) -> tuple[list[Vertex], list[Edge]]:
+        edges = []
+
+        with open(self.filepath, 'r') as fp:
+            vertices = [Vertex(name.strip())
+                        for name in fp.readline().split(' ')]
+
+            for index, values in enumerate(fp.readlines()):
+                for edge_str in values.split(' '):
+                    left_brace = edge_str.find('[')
+                    if left_brace == -1 or left_brace != 0:
+                        raise ValueError
+
+                    right_brace = edge_str.find(']')
+                    if right_brace == -1 or right_brace != len(values) - 2:
+                        raise ValueError
+
+                    edge_str = edge_str[left_brace + 1:right_brace]
+                    parts = edge_str.split(',')
+                    if not self.isNumber(parts[1]):
+                        raise ValueError
+                    edge = Edge(vertices[index],
+                                vertices[int(parts[0])], float(parts[1]))
+                    edges.append(edge)
+
+        return edges, vertices
+
+    def to(self, graph: Graph):
+        edges = graph.get_edges()
+        gr = defaultdict(list)
+        for edge in edges:
+            gr[edge.start].append((edge.finish, edge.weight))
+            gr[edge.finish].append((edge.start, edge.weight))
+
+        return gr

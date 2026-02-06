@@ -8,23 +8,7 @@ from src.graph.base import Graph
 
 
 class AdjaencyMatrixParser(GraphParser):
-    def parseFrom(self):
-        edges = []
-
-        with open(self.filepath, 'r') as fp:
-            vertices = [Vertex(name.strip())
-                        for name in fp.readline().split(' ')]
-            for row, values in enumerate(fp.readlines()):
-                for col, value in enumerate(values.split(' ')):
-                    if self.isNumber(value):
-                        if Decimal(value) != Decimal('0.0'):
-                            weight = float(value)
-                            edges.append(
-                                Edge(vertices[row], vertices[col], weight))
-
-        return Graph(edges, vertices)
-
-    def parseTo(self, graph: Graph):
+    def serialize(self, graph: Graph) -> int:
         vertices = graph.get_vertices()
         vertices_names = (vertex.name for vertex in vertices)
         edges = graph.get_edges()
@@ -52,3 +36,33 @@ class AdjaencyMatrixParser(GraphParser):
             chars = fp.write(parse_result)
 
         return chars
+
+    def deserialize(self) -> tuple[list[Vertex], list[Edge]]:
+        edges = []
+
+        with open(self.filepath, 'r') as fp:
+            vertices = [Vertex(name.strip())
+                        for name in fp.readline().split(' ')]
+            for row, values in enumerate(fp.readlines()):
+                for col, value in enumerate(values.split(' ')):
+                    if self.isNumber(value):
+                        if Decimal(value) != Decimal('0.0'):
+                            weight = float(value)
+                            edges.append(
+                                Edge(vertices[row], vertices[col], weight))
+
+        return edges, vertices
+
+    def to(self, graph: Graph):
+        vertices = graph.get_vertices()
+        n = len(vertices)
+        edges = graph.get_edges()
+        vertex_to_index = {vertex: index for index,
+                           vertex in enumerate(vertices)}
+        self.matrix = [[0 for _ in range(n)] for _ in range(n)]
+        for edge in edges:
+            row = vertex_to_index[edge.start]
+            col = vertex_to_index[edge.finish]
+            self.matrix[row][col] = 1
+            self.matrix[col][row] = 1
+        return self.matrix

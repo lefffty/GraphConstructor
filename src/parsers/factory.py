@@ -2,7 +2,7 @@ from pathlib import Path
 
 from src.data.enums.formats import ParseFormat
 
-from .adjaency_array import AdjaencyArrayParser
+from .edges_list import EdgesListParser
 from .adjaency_list import AdjaencyListParser
 from .adjaency_matrix import AdjaencyMatrixParser
 
@@ -12,8 +12,8 @@ class GraphParserFactory:
     def createParserToGraph(parseFormat: ParseFormat, filepath: Path):
         format_to_parser = {
             ParseFormat.ADJAENCY_MATRIX: AdjaencyMatrixParser,
-            ParseFormat.ADJAENCY_ARRAY: AdjaencyArrayParser,
             ParseFormat.ADJAENCY_LIST: AdjaencyListParser,
+            ParseFormat.EDGES_LIST: EdgesListParser,
         }
 
         try:

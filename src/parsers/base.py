@@ -3,6 +3,7 @@ from pathlib import Path
 
 from src.data.classes.vertex import Vertex
 from src.data.classes.edge import Edge
+from src.graph.base import Graph
 
 
 class GraphParser(ABC):
@@ -10,11 +11,15 @@ class GraphParser(ABC):
         self.filepath = filepath
 
     @abstractmethod
-    def parseFrom(self) -> tuple[list[Vertex], list[Edge]]:
+    def serialize(self, graph: Graph) -> int:
         pass
 
     @abstractmethod
-    def parseTo(self, graph: Graph) -> str:
+    def deserialize(self) -> tuple[list[Vertex], list[Edge]]:
+        pass
+
+    @abstractmethod
+    def to(self, graph: Graph):
         pass
 
     def isNumber(self, value: str):
