@@ -1,14 +1,12 @@
 from .base import GraphTraversal
+from src.data.classes.vertex import Vertex
+from src.graph.base import Graph
 
 from collections import defaultdict, deque
 
 
 class BFSAlgorithm(GraphTraversal):
-    def execute(self, graph, *args, **kwargs):
-        start = kwargs.pop('start', None)
-        if start is None:
-            raise ValueError
-
+    def execute(self, graph: Graph, start: Vertex) -> list[Vertex]:
         edges = graph.get_edges()
 
         gr = defaultdict(list)
