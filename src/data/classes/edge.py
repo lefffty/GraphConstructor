@@ -9,7 +9,7 @@ from src.data.classes.vertex import Vertex
 class Edge:
     start: Vertex
     finish: Vertex
-    weight: SupportsFloat = 1.
+    weight: SupportsFloat
 
     def to_serializable(self):
         return {

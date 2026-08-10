@@ -3,77 +3,61 @@ from .base import Graph
 from src.data.classes.edge import Edge
 from src.data.classes.vertex import Vertex
 
-from typing import overload, SupportsFloat
+from typing import SupportsFloat
 
 
 class WeightedGraph(Graph):
-    @overload
-    def add_vertex(self, name: str):
-        if not isinstance(name, str):
-            raise ValueError
-        vertex = Vertex(name)
-        if vertex not in self.vertices:
-            self.vertices.append(vertex)
-
-    @overload
-    def add_vertex(self, vertex: Vertex):
-        if vertex not in self.vertices:
-            self.vertices.append(vertex)
-
-    @overload
-    def add_edge(self, edge: Edge):
-        if edge not in self.edges:
-            self.edges.append(edge)
-
-    @overload
-    def add_edge(self, start: Vertex, finish: Vertex, weight: SupportsFloat):
-        if not isinstance(start, Vertex):
-            raise ValueError
-        if not isinstance(finish, Vertex):
-            raise ValueError
-        if not isinstance(weight, SupportsFloat):
-            raise ValueError
-        edge = Edge(start, finish, weight)
-        if edge not in self.edges:
-            self.edges.append(edge)
-
     def get_edges(self):
-        return self.edges
+        return self._edges
 
     def get_vertices(self):
-        return self.vertices
+        return self._vertices
 
-    def add_edges(self, edges: list[tuple[str, str, SupportsFloat]]):
-        return [self.add_edge(*edge) for edge in edges]
+    def add_vertex(self, vertex: Vertex):
+        self._vertices.append(vertex)
 
     def add_vertices(self, vertices: list[Vertex]):
         return [self.add_vertex(vertex) for vertex in vertices]
 
+    def add_edge(self, start: Vertex, finish: Vertex, weight: SupportsFloat):
+        edge = Edge(start, finish, weight)
+        if not self.is_vertex_in(start):
+            self.add_vertex(start)
+        if not self.is_vertex_in(finish):
+            self.add_vertex(finish)
+        if edge not in self._edges:
+            self._edges.append(edge)
+
+    def add_edges(self, edges: list[Edge]):
+        return [self.add_edge(edge) for edge in edges]
+
     def set_names(self, names: list[str]):
-        if len(names) != len(self.vertices):
-            raise ValueError
-        self.vertices = [vertex.rename(name)
-                         for vertex, name in zip(self.vertices, names)]
+        if len(names) != len(self._vertices):
+            raise ValueError(
+                "Numbers of names doesn`t match numbers of vertices!")
+        self._vertices = [vertex.rename(name)
+                          for vertex, name in zip(self._vertices, names)]
 
-    def remove_edge(self, start: str, finish: str, weight: SupportsFloat) -> bool:
-        start_v = Vertex(start)
-        finish_v = Vertex(finish)
-        edge = Edge(start_v, finish_v, weight)
+    def remove_edge(self, start: Vertex, finish: Vertex, weight: SupportsFloat) -> bool:
+        edge = Edge(start, finish, weight)
+        if self.is_edge_in(edge):
+            raise ValueError('Edge is not in graph!')
 
-        for index, _edge in enumerate(self.edges):
+        for index, _edge in enumerate(self._edges):
             if edge == _edge:
-                self.edges.pop(index)
+                self._edges.pop(index)
                 return True
 
         return False
 
-    def remove_vertex(self, name: str):
-        vertex = Vertex(name)
+    def remove_vertex(self, vertex: Vertex):
+        if not self.is_vertex_in(vertex):
+            raise ValueError('Vertex is not in graph!')
 
-        for index, edge in enumerate(self.edges):
+        for index, edge in enumerate(self._edges):
             if edge.start == vertex or edge.finish == vertex:
-                self.edges.pop(index)
+                self._edges.pop(index)
 
-        for index, vertex in enumerate(self.vertices):
-            if vertex == Vertex(name):
-                self.vertices.pop(index)
+        for index, _vertex in enumerate(self._vertices):
+            if vertex == _vertex:
+                self._vertices.pop(index)
